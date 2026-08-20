@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Calendar, 
@@ -8,97 +8,119 @@ import {
   Search, 
   Sparkles, 
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  RefreshCw,
+  PlusCircle,
+  Stethoscope,
+  Activity
 } from 'lucide-react';
 import AppointmentCard from '../components/AppointmentCard';
 
-const initialAppointments = [
+const defaultAppointments = [
   {
     id: '1',
-    patientName: 'John Doe',
-    doctorName: 'Dr. Sarah Smith (Cardiology)',
+    patientName: 'Aarav Patel',
+    doctorName: 'Dr. Hardik Agrawal (Cardiology)',
     date: '2026-08-25',
     timeSlot: '10:00 AM - 10:30 AM',
     status: 'confirmed'
   },
   {
     id: '2',
-    patientName: 'Emma Watson',
-    doctorName: 'Dr. Michael Jones (Neurology)',
+    patientName: 'Ananya Shah',
+    doctorName: 'Dr. Rahul Patel (Neurology)',
     date: '2026-08-26',
     timeSlot: '02:00 PM - 02:30 PM',
     status: 'pending'
   },
   {
     id: '3',
-    patientName: 'Robert Johnson',
-    doctorName: 'Dr. Emily White (Pediatrics)',
+    patientName: 'Rohan Sharma',
+    doctorName: 'Dr. Priya Shah (Pediatrics)',
     date: '2026-08-28',
     timeSlot: '11:00 AM - 11:30 AM',
     status: 'cancelled'
-  },
-  {
-    id: '4',
-    patientName: 'Sophia Miller',
-    doctorName: 'Dr. Alex Vance (Orthopedics)',
-    date: '2026-08-29',
-    timeSlot: '04:15 PM - 04:45 PM',
-    status: 'confirmed'
-  },
-  {
-    id: '5',
-    patientName: 'David Clark',
-    doctorName: 'Dr. Sarah Smith (Cardiology)',
-    date: '2026-08-30',
-    timeSlot: '09:30 AM - 10:00 AM',
-    status: 'pending'
   }
 ];
 
 const HomePage = () => {
+  const [appointments, setAppointments] = useState(defaultAppointments);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const filteredAppointments = initialAppointments.filter(app => {
-    const matchesFilter = filter === 'all' || app.status.toLowerCase() === filter.toLowerCase();
+  // Fetch live appointments from Express REST API
+  const fetchAppointments = () => {
+    setIsLoading(true);
+    fetch('http://localhost:5000/api/v1/appointments')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAppointments(data);
+        }
+      })
+      .catch(err => {
+        console.log('Using default appointments');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const filteredAppointments = appointments.filter(app => {
+    const status = app.status || 'pending';
+    const matchesFilter = filter === 'all' || status.toLowerCase() === filter.toLowerCase();
+    const patient = app.patientName || '';
+    const doctor = app.doctorName || '';
     const matchesSearch = 
-      app.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.doctorName.toLowerCase().includes(searchQuery.toLowerCase());
+      patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doctor.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
-  const totalCount = initialAppointments.length;
-  const confirmedCount = initialAppointments.filter(a => a.status === 'confirmed').length;
-  const pendingCount = initialAppointments.filter(a => a.status === 'pending').length;
+  const totalCount = appointments.length;
+  const confirmedCount = appointments.filter(a => (a.status || '').toLowerCase() === 'confirmed').length;
+  const pendingCount = appointments.filter(a => (a.status || '').toLowerCase() === 'pending').length;
 
   return (
-    <div>
-      {/* Hero Banner */}
-      <section className="hero-card">
-        <div className="hero-badge">
-          <Sparkles size={14} />
-          <span>Next-Gen Healthcare Management</span>
-        </div>
-        <h1 className="hero-title">
-          Compassionate Care, <span>Seamless Scheduling</span>
-        </h1>
-        <p className="hero-desc">
-          Welcome to MedCare Plus Hospital System. Easily manage patient appointments, track specialist doctors, and experience fast clinical workflows.
-        </p>
-        <div className="hero-actions">
-          <Link to="/booking" className="btn btn-primary">
-            <span>Book New Appointment</span>
-            <ArrowRight size={18} />
-          </Link>
-          <Link to="/doctors" className="btn btn-secondary">
-            <UserCheck size={18} />
-            <span>Meet Our Specialists</span>
-          </Link>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+      {/* Hero Banner Section */}
+      <section className="hero-card" style={{ margin: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <div className="hero-badge">
+            <Sparkles size={14} />
+            <span>MedCare Plus Healthcare System</span>
+          </div>
+          
+          <h1 className="hero-title" style={{ fontSize: '2.6rem', lineHeight: '1.2', marginBottom: '1rem', fontWeight: 800 }}>
+            Compassionate Care, <br />
+            <span style={{ color: 'var(--primary)' }}>Seamless Scheduling</span>
+          </h1>
+          
+          <p className="hero-desc" style={{ fontSize: '1.05rem', color: '#475569', maxWidth: '640px', marginBottom: '2rem', lineHeight: '1.65' }}>
+            Easily manage and schedule appointments with top board-certified doctors. Experience instant confirmations, real-time status tracking, and simplified medical records.
+          </p>
+
+          <div className="hero-actions" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Link to="/booking" className="btn btn-primary" style={{ padding: '0.8rem 1.6rem', fontSize: '0.95rem' }}>
+              <span>Book Appointment</span>
+              <ArrowRight size={18} />
+            </Link>
+            
+            <Link to="/doctors" className="btn btn-secondary" style={{ padding: '0.8rem 1.6rem', fontSize: '0.95rem' }}>
+              <Stethoscope size={18} color="var(--primary)" />
+              <span>Browse Doctors</span>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Stats Summary Grid */}
-      <section className="stats-grid">
+      <section className="stats-grid" style={{ margin: 0, gap: '1.25rem' }}>
         <div className="stat-card">
           <div className="stat-icon" style={{ backgroundColor: '#e0f2fe', color: '#0284c7' }}>
             <Calendar size={24} />
@@ -131,7 +153,7 @@ const HomePage = () => {
 
         <div className="stat-card">
           <div className="stat-icon" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed' }}>
-            <ShieldCheck size={24} />
+            <Activity size={24} />
           </div>
           <div className="stat-info">
             <h4>100%</h4>
@@ -141,17 +163,56 @@ const HomePage = () => {
       </section>
 
       {/* Appointments Management Section */}
-      <section>
-        <div className="section-header">
+      <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Section Header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          paddingBottom: '0.5rem'
+        }}>
           <div>
-            <h2 className="section-title">Hospital Appointments</h2>
-            <p className="section-subtitle">Real-time schedule of patient appointments and clinical statuses.</p>
+            <h2 className="section-title" style={{ fontSize: '1.65rem', marginBottom: '0.25rem' }}>
+              Hospital Appointments Schedule
+            </h2>
+            <p className="section-subtitle" style={{ color: '#64748b', fontSize: '0.925rem' }}>
+              Real-time schedule of patient appointments and clinical statuses.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button 
+              onClick={fetchAppointments} 
+              className="btn btn-secondary" 
+              title="Refresh live data"
+              style={{ padding: '0.6rem 1rem', fontSize: '0.875rem' }}
+            >
+              <RefreshCw size={15} className={isLoading ? 'lucide-spin' : ''} />
+              <span>Sync Live</span>
+            </button>
+            <Link to="/booking" className="btn btn-primary" style={{ padding: '0.6rem 1.15rem', fontSize: '0.875rem' }}>
+              <PlusCircle size={16} />
+              <span>New Booking</span>
+            </Link>
           </div>
         </div>
 
-        {/* Filter Controls & Search Box */}
-        <div className="filters-container">
-          <div className="pill-group">
+        {/* Filter Controls & Search Box Toolbar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          background: 'white',
+          padding: '1rem 1.25rem',
+          borderRadius: '16px',
+          border: '1px solid #e2e8f0',
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          <div className="pill-group" style={{ margin: 0 }}>
             <button 
               className={`pill-btn ${filter === 'all' ? 'active' : ''}`}
               onClick={() => setFilter('all')}
@@ -178,11 +239,11 @@ const HomePage = () => {
             </button>
           </div>
 
-          <div className="search-box">
+          <div className="search-box" style={{ flex: '1', maxWidth: '360px', minWidth: '240px' }}>
             <Search size={18} color="#94a3b8" />
             <input 
               type="text" 
-              placeholder="Search by patient or doctor..."
+              placeholder="Search by patient or doctor name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -191,10 +252,10 @@ const HomePage = () => {
 
         {/* Dynamic Cards Grid */}
         {filteredAppointments.length > 0 ? (
-          <div className="cards-grid">
+          <div className="cards-grid" style={{ gap: '1.5rem' }}>
             {filteredAppointments.map(appointment => (
               <AppointmentCard
-                key={appointment.id}
+                key={appointment.id || appointment._id}
                 patientName={appointment.patientName}
                 doctorName={appointment.doctorName}
                 date={appointment.date}
@@ -206,12 +267,21 @@ const HomePage = () => {
         ) : (
           <div style={{
             textAlign: 'center',
-            padding: '3rem',
+            padding: '4rem 2rem',
             background: 'white',
-            borderRadius: '16px',
-            border: '1px dashed #cbd5e1'
+            borderRadius: '20px',
+            border: '1px dashed #cbd5e1',
+            boxShadow: 'var(--shadow-sm)'
           }}>
-            <p style={{ color: '#64748b', fontSize: '1.1rem' }}>No appointments match your selected filter or search query.</p>
+            <Calendar size={42} color="#94a3b8" style={{ margin: '0 auto 1rem' }} />
+            <h3 style={{ fontSize: '1.2rem', color: '#1e293b', marginBottom: '0.5rem' }}>No Appointments Found</h3>
+            <p style={{ color: '#64748b', fontSize: '0.95rem', maxWidth: '420px', margin: '0 auto 1.5rem' }}>
+              There are no appointments matching your selected filter or search keyword.
+            </p>
+            <Link to="/booking" className="btn btn-primary">
+              <PlusCircle size={18} />
+              <span>Book an Appointment</span>
+            </Link>
           </div>
         )}
       </section>

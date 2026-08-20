@@ -16,26 +16,51 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hospital'
 
     // 1. Create Doctors
     const doctors = await Doctor.insertMany([
-      { name: 'Dr. Sarah Smith', email: 'sarah.smith@medcareplus.com', specialisation: 'Cardiology', available: true },
-      { name: 'Dr. Michael Jones', email: 'michael.jones@medcareplus.com', specialisation: 'Neurology', available: true },
-      { name: 'Dr. Emily White', email: 'emily.white@medcareplus.com', specialisation: 'Pediatrics', available: false },
-      { name: 'Dr. Alex Vance', email: 'alex.vance@medcareplus.com', specialisation: 'Orthopedics', available: true },
-      { name: 'Dr. Lisa Ray', email: 'lisa.ray@medcareplus.com', specialisation: 'Dermatology', available: true }
+      {
+        name: 'Dr. Hardik Agrawal',
+        email: 'hardik.agrawal@medcareplus.com',
+        specialisation: 'Cardiology',
+        available: true
+      },
+      {
+        name: 'Dr. Rahul Patel',
+        email: 'rahul.patel@medcareplus.com',
+        specialisation: 'Neurology',
+        available: true
+      },
+      {
+        name: 'Dr. Priya Shah',
+        email: 'priya.shah@medcareplus.com',
+        specialisation: 'Pediatrics',
+        available: false
+      },
+      {
+        name: 'Dr. Dev Mehta',
+        email: 'dev.mehta@medcareplus.com',
+        specialisation: 'Orthopedics',
+        available: true
+      },
+      {
+        name: 'Dr. Neha Joshi',
+        email: 'neha.joshi@medcareplus.com',
+        specialisation: 'Dermatology',
+        available: true
+      }
     ]);
 
     // 2. Create Patients
     const patient1 = await Patient.create({
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '123-456-7890',
+      name: 'Aarav Patel',
+      email: 'aarav.patel@example.com',
+      phone: '9876543210',
       bloodGroup: 'O+',
       age: 35
     });
 
     const patient2 = await Patient.create({
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      phone: '987-654-3210',
+      name: 'Ananya Shah',
+      email: 'ananya.shah@example.com',
+      phone: '9876543211',
       bloodGroup: 'A-',
       age: 28
     });
