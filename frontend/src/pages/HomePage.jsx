@@ -86,7 +86,7 @@ const HomePage = () => {
           Welcome to MedCare Plus Hospital System. Easily manage patient appointments, track specialist doctors, and experience fast clinical workflows.
         </p>
         <div className="hero-actions">
-          <Link to="/book" className="btn btn-primary">
+          <Link to="/booking" className="btn btn-primary">
             <span>Book New Appointment</span>
             <ArrowRight size={18} />
           </Link>

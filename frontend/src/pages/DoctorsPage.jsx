@@ -102,7 +102,7 @@ const DoctorsPage = () => {
             Consult with top board-certified doctors across specialized departments.
           </p>
         </div>
-        <Link to="/book" className="btn btn-primary">
+        <Link to="/booking" className="btn btn-primary">
           <Calendar size={18} />
           <span>Book Appointment</span>
         </Link>
@@ -253,7 +253,7 @@ const DoctorsPage = () => {
 
             {/* Action button */}
             <Link 
-              to="/book" 
+              to="/booking" 
               className="btn btn-outline"
               style={{
                 width: '100%',
