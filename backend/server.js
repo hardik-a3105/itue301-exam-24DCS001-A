@@ -5,6 +5,11 @@ require('dotenv').config();
 
 const requestLogger = require('./middleware/logger');
 
+// Import Mongoose Models (Task 5)
+const Patient = require('./models/Patient');
+const Doctor = require('./models/Doctor');
+const Appointment = require('./models/Appointment');
+
 const app = express();
 
 // Global Middlewares
@@ -15,13 +20,14 @@ app.use(requestLogger); // Apply custom request logger globally
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
+// Connect to MongoDB
 if (MONGODB_URI) {
   mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
+    .then(() => console.log('Connected to MongoDB successfully!'))
     .catch(err => console.error('MongoDB connection error:', err));
 }
 
-// In-Memory Data Storage (Task 3)
+// --- Task 3: In-Memory Data Storage & Endpoints ---
 let doctors = [
   { id: '1', name: 'Dr. Sarah Smith', email: 'sarah.smith@medcareplus.com', specialisation: 'Cardiology', available: true },
   { id: '2', name: 'Dr. Michael Jones', email: 'michael.jones@medcareplus.com', specialisation: 'Neurology', available: true },
@@ -39,41 +45,25 @@ let appointments = [
     timeSlot: '10:00 AM - 10:30 AM',
     status: 'confirmed',
     reason: 'Routine Cardiology Consultation'
-  },
-  {
-    id: '2',
-    patientName: 'Emma Watson',
-    doctorName: 'Dr. Michael Jones',
-    doctorId: '2',
-    date: '2026-08-26',
-    timeSlot: '02:00 PM - 02:30 PM',
-    status: 'pending',
-    reason: 'Migraine and Headaches'
   }
 ];
 
-// Base Route
 app.get('/', (req, res) => {
   res.send('Hospital Appointment System API is running.');
 });
 
-// REST Endpoints (Task 3)
-
-// 1. GET /api/v1/appointments - Return all appointments (200 OK)
+// GET /api/v1/appointments
 app.get('/api/v1/appointments', (req, res) => {
   res.status(200).json(appointments);
 });
 
-// 2. POST /api/v1/appointments - Create a new appointment (201 Created)
+// POST /api/v1/appointments
 app.post('/api/v1/appointments', (req, res, next) => {
   try {
     const { patientName, doctorName, doctorId, date, timeSlot, status, reason } = req.body;
 
     if (!patientName || !date || !timeSlot) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide patientName, date, and timeSlot.'
-      });
+      return res.status(400).json({ success: false, message: 'Please provide patientName, date, and timeSlot.' });
     }
 
     const newAppointment = {
@@ -99,14 +89,69 @@ app.post('/api/v1/appointments', (req, res, next) => {
   }
 });
 
-// 3. GET /api/v1/doctors - Return all doctors (200 OK)
+// GET /api/v1/doctors
 app.get('/api/v1/doctors', (req, res) => {
   res.status(200).json(doctors);
 });
 
-// Global Error Handling Middleware (Last middleware in app)
+
+// --- Task 5: MongoDB Mongoose Implementation Demonstrations ---
+
+// 1. Successful MongoDB Operation (Create Patient)
+app.post('/api/v1/db/patients', async (req, res, next) => {
+  try {
+    const newPatient = new Patient({
+      name: 'Alice Johnson',
+      email: `alice.${Date.now()}@example.com`,
+      phone: '+1 (555) 123-4567',
+      bloodGroup: 'AB+', // Valid blood group
+      age: 28
+    });
+    
+    // Save to actual MongoDB Database
+    await newPatient.save();
+    
+    res.status(201).json({
+      success: true,
+      message: 'Patient created successfully in MongoDB',
+      data: newPatient
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 2. Validation Failure Demonstration (Invalid Blood Group & Missing Name)
+app.post('/api/v1/db/patients/fail', async (req, res, next) => {
+  try {
+    const invalidPatient = new Patient({
+      // Intentionally missing 'name' (required field)
+      email: `invalid.${Date.now()}@example.com`,
+      bloodGroup: 'Z-', // Invalid enum value
+      age: 45
+    });
+    
+    // This will throw a Mongoose ValidationError
+    await invalidPatient.save(); 
+    
+    res.status(201).json({ success: true, data: invalidPatient });
+  } catch (error) {
+    // Return meaningful error response instead of raw mongoose error object
+    if (error.name === 'ValidationError') {
+      const errorMessages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Mongoose Validation Failed',
+        errors: errorMessages
+      });
+    }
+    next(error);
+  }
+});
+
+// Global Error Handling Middleware (Task 3 & 5)
 app.use((err, req, res, next) => {
-  console.error('[Error caught by global handler]:', err);
+  console.error('[Error caught by global handler]:', err.message);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal Server Error'
